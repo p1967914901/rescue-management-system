@@ -11,6 +11,7 @@ import Highlighter from 'react-highlight-words';
 import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
 import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDigit, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import { IRouteComponentProps, history, useLocation } from 'umi';
 
 
 export interface EquipInfoItemType {
@@ -236,6 +237,13 @@ export default () => {
     columns.pop();
   }
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname !== '.login' && !localStorage.length) {
+      history.push('/login')
+    }
+  }, []);
   useEffect(() => {
     axios.post('/equip/list', {})
       .then(res => {

@@ -1,12 +1,29 @@
 import React from 'react';
-import { Form, Input, Button, Checkbox } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import axios from '../../utils/axios';
+import { history } from 'umi';
 
 interface LoginFormProps {
   onFinish: (values: any) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onFinish }) => {
+const LoginForm: React.FC<LoginFormProps> = () => {
+
+  const onFinish = async (values:any) => {
+    // console.log(values)
+    const res = await axios.post('/login', values)
+    if (res.status === 200) {
+      console.log(res.data)
+      localStorage.setItem('user', JSON.stringify(res.data));
+      localStorage.setItem('role', String(res.data.grade));
+      message.success('登陆成功');
+      history.push('/activityOrganization')
+    } else {
+
+    }
+  }
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <Form

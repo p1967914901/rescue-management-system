@@ -2,6 +2,7 @@ import { GithubFilled, InfoCircleFilled, QuestionCircleFilled } from '@ant-desig
 import type { ProSettings } from '@ant-design/pro-components';
 import { PageContainer, ProLayout, ProCard } from '@ant-design/pro-components';
 import { useEffect, useState } from 'react';
+import { Button, message } from 'antd';
 import defaultProps from './_defaultProps';
 import { IRouteComponentProps, history, useLocation } from 'umi';
 
@@ -10,12 +11,15 @@ export default (props:IRouteComponentProps) => {
   const location = useLocation();
 
   useEffect(() => {
-    localStorage.setItem('role', '0');
+    if (location.pathname !== '.login' && !localStorage.length) {
+      history.push('/login')
+    }
   }, []);
 
   if (location.pathname === '/login') {
     return props.children;
   }
+
   return (
     <div
       id="test-pro-layout"
@@ -55,8 +59,17 @@ export default (props:IRouteComponentProps) => {
         //   type: 'group',
         // }}
         avatarProps={{
-          src: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
-          title: '七妮妮',
+          render: () =>
+            <Button type="link" size={'large'} onClick={
+              () => {
+                localStorage.clear();
+                history.push('/login');
+                message.success('您已退出登陆');
+              }
+            }>
+              退出登陆
+            </Button>
+
         }}
         menuItemRender={(item, dom) => (
           <div
