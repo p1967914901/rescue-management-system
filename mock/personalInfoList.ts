@@ -13,6 +13,7 @@ export default {
   'POST /user/list': mockjs.mock({
     'status': 1,
     'data|100': [{
+      // 'id|+1': 1,
       'name': '@cname',
       'username': '@id',
       'gender|1': [0, 1],

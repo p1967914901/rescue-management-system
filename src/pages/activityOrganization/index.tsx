@@ -372,7 +372,8 @@ const App: React.FC = () => {
       right: 40,
     }} onClick={
       async () => {
-        setModalVisit(true)
+        setModalVisit(true);
+        setAction('新增');
       }
     }>
       新增
@@ -392,31 +393,38 @@ const App: React.FC = () => {
         }}
         submitTimeout={2000}
         onFinish={async (values) => {
-          // const record = {...values, id: equipDetail.id};
-          // if(typeof record.type !== 'string') {
-          //   record.type = (record.type as any).value;
-          //   record.name = (record.name as any).value;
-          //   record.status = (record.status as any).value;
-          // }
-
-          // // const record.
-          // if (action === '新增') {
-          //   const res = await axios.post('/equip/insert', record);
-          //   if (res.status === 200) {
-          //     console.log(record)
-          //     record.key = record.id;
-          //     await setData([record, ...data]);
-          //     message.success('添加成功');
-          //   }
-          // } else {
-          //   const res = await axios.post('/equip/update', record);
-          //   if (res.status === 200) {
-          //     record.key = record.id;
-          //     console.log(record, data);
-          //     setData(data.map(item => item.id === record.id ? record : item));
-          //     message.success('编辑成功');
-          //   }
-          // }
+          const record = values;
+          for(let i = 0; i < record.equipments.length; i++) {
+            if(typeof record.equipments[i] !== 'string') {
+              record.equipments[i] = {
+                id: record.equipments[i].id,
+                name: (record.equipments[i] as any).label
+              }
+            }
+          }
+          if(typeof record.activityType !== 'string') {
+            record.activityType = (record.activityType as any).value;
+          }
+          // console.log(record);
+          if (action === '新增') {
+            const res = await axios.post('/activity/insert', record);
+            if (res.status === 200) {
+              console.log(res.data.data);
+              res.data.data.key = res.data.data.id;
+              await setDataSource([res.data.data, ...dataSource]);
+              message.success('添加成功');
+            }
+          } else {
+            record.id = detail.id;
+            record.participants = detail.participants;
+            const res = await axios.post('/activity/update', record);
+            if (res.status === 200) {
+              console.log(res.data.data);
+              record.key = record.id;
+              setDataSource(dataSource.map(item => item.id === record.id ? record : item));
+              message.success('编辑成功');
+            }
+          }
           return true;
         }}
       >

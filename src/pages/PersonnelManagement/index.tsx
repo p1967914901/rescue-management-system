@@ -10,6 +10,8 @@ import Highlighter from 'react-highlight-words';
 import axios from '../../utils/axios';
 import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
+import { IRouteComponentProps, history, useLocation } from 'umi';
+
 
 export interface PersonalInfoItem {
   id: number;
@@ -135,7 +137,13 @@ export default () => {
         text
       ),
   });
+  const location = useLocation();
 
+  useEffect(() => {
+    if (location.pathname !== '.login' && !localStorage.length) {
+      history.push('/login')
+    }
+  }, []);
   useEffect(() => {
     axios.post('/user/list').then(res => {
       setDataSource(res.data.data.map((v:any) => ({...v, key: v.username})).sort((a:PersonalInfoItem, b:PersonalInfoItem) => b.id - a.id));
@@ -404,12 +412,12 @@ export default () => {
         }
         record.key = record.username;
         setDataSource([record, ...dataSource]);
-        axios.post('/user/insert', record)
-          .then(res => {
-            if (res.status === 200) {
-              message.success('新增成功');
-            }
-          })
+        // axios.post('/user/insert', record)
+        //   .then(res => {
+        //     if (res.status === 200) {
+        //       message.success('新增成功');
+        //     }
+        //   })
       }
     }>
       新增

@@ -254,12 +254,13 @@ export default () => {
           if (action === '新增') {
             const res = await axios.post('/fund/insert', record);
             if (res.status === 200) {
-              console.log(record)
-              record.key = record.id;
-              await setData([record, ...data]);
+              console.log(res.data.data)
+              res.data.data.key = res.data.data.id;
+              await setData([res.data.data, ...data]);
               message.success('添加成功');
             }
           } else {
+            record.id = fundDetail.id;
             const res = await axios.post('/fund/update', record);
             if (res.status === 200) {
               record.key = record.id;

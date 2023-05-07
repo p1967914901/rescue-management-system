@@ -15,8 +15,8 @@ export default {
         icon: <SmileFilled />,
       },
       {
-        path: '/rating',
-        name: '年度评比',
+        path: '/ranking',
+        name: '排行榜',
         icon: <SmileFilled />,
       },
       {
@@ -34,6 +34,11 @@ export default {
         name: '人员管理',
         icon: <SmileFilled />,
       },
+      {
+        path: '/personalCenter',
+        name: '个人中心',
+        icon: <SmileFilled />,
+      }
     ],
   },
   location: {

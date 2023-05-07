@@ -12,15 +12,16 @@ const LoginForm: React.FC<LoginFormProps> = () => {
 
   const onFinish = async (values:any) => {
     // console.log(values)
-    const res = await axios.post('/login', values)
-    if (res.status === 200) {
+    const res = await axios.post('/auth/login', values);
+    // console.log(res);
+    if (res.data.message === '登录成功') {
       console.log(res.data)
-      localStorage.setItem('user', JSON.stringify(res.data));
-      localStorage.setItem('role', String(res.data.grade));
-      message.success('登陆成功');
+      localStorage.setItem('user', JSON.stringify(res.data.data));
+      localStorage.setItem('role', String(res.data.data.grade));
+      message.success('登录成功');
       history.push('/activityOrganization')
     } else {
-
+      message.error(res.data.message);
     }
   }
 

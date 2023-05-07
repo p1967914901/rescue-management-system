@@ -214,7 +214,8 @@ export default () => {
             // description=""
             onConfirm={
               async() => {
-                const res = await axios.post('/fund/delete', record);
+                console.log(record)
+                const res = await axios.post('/equip/delete', record);
                 if (res.status === 200) {
                   message.success('删除成功');
                 }
@@ -290,16 +291,17 @@ export default () => {
           if (action === '新增') {
             const res = await axios.post('/equip/insert', record);
             if (res.status === 200) {
-              console.log(record)
-              record.key = record.id;
-              await setData([record, ...data]);
+              console.log(res.data.data)
+              res.data.data.key = res.data.data.id;
+              await setData([res.data.data, ...data]);
               message.success('添加成功');
             }
           } else {
+            record.id = equipDetail.id;
             const res = await axios.post('/equip/update', record);
             if (res.status === 200) {
               record.key = record.id;
-              console.log(record, data);
+              // console.log(record, data);
               setData(data.map(item => item.id === record.id ? record : item));
               message.success('编辑成功');
             }
