@@ -1,89 +1,69 @@
 import { ProDescriptions } from '@ant-design/pro-components';
-import { Select } from 'antd';
+import { Select, message } from 'antd';
+import axios from '../../utils/axios';
 import { useState, useEffect } from 'react';
-import request from 'umi-request';
 
 
-interface UserInfoType {
-  name: string,
-  userId: string,
-  birthday: string,
-  sex: number,
-  major: string,
-  college: string,
-  alumniAssociationId: string,
-  phone: string,
-  address: string,
-  employer: string,
-  job: string,
-  email: string,
-  isManager: number,
-  isTutor: number,
-  createTime: string
+export interface PersonalInfoItem {
+  id: number;
+	name: string;
+	username: string;
+	gender: number;
+	phone: string;
+	birthday: string;
+	idNo: string;
+	workingSeniority: number;
+	conditions: number;
+	job: string;
+	workPlace: string;
+	skill: string;
+	grade: number;
+	state: number;
+	isLeave: number;
+	reason: string;
+	password: string;
+	createTime: string;
 }
 
 export default () => {
 
-  const [data, setData] = useState<UserInfoType>({
-    name: '',
-    userId: '',
-    birthday: '2001-01-01',
-    sex: 0,
-    major: '',
-    college: '',
-    alumniAssociationId: '',
-    phone: '',
-    address: '',
-    employer: '',
+  const [data, setData] = useState<PersonalInfoItem>({
+    name: '', //
+    username: '', //
+    id: 9,
+    gender: 0, //
+    phone: '', //
+    birthday: '', //
+    idNo: '', //
+    workingSeniority: 0,
+    conditions: 1,
     job: '',
-    email: '',
-    isManager: 0,
-    isTutor: 0,
-    createTime: ''
+    workPlace: '',
+    skill: '',
+    grade: 1,
+    state: 1,
+    isLeave: 0,
+    reason: '',
+    password: '',
+    createTime: '',
   });
   // const [columns, setColumns] = useState([]);
 
   useEffect(() => {
-    request.get('/api/getUserInfo').then(res => {
-      setData(res.data);
-    });
-    // request.post('/api/updateUserInfo').then(res => {
-    //   console.log(res)
-    // })
+    setData(JSON.parse(localStorage.getItem('user') as string));
   }, []);
-
-
-  // function getColumsData(data:UserInfoType) {
-  //   const columns:any = [];
-  //   const hide = ['alumniAssociationId', 'id']
-  //   const notEditable = ['isManager']
-
-  //   for(const key in data) {
-  //     if (hide.includes(key)) {
-  //       continue;
-  //     }
-  //     columns.push({
-  //       title: '名字',
-  //       key: 'name',
-  //       dataIndex: 'name',
-  //       copyable: false,
-  //       ellipsis: true,
-  //     })
-  //   }
-
-  //   return columns;
-  // }
 
   return (
     <ProDescriptions
       bordered
       dataSource={data}
       editable={{
-        onSave: (key, record) => {
-          return new Promise((resolve) => {
-            console.log(key, record);
-            resolve(1);
-          })
+        onSave: async (key, record) => {
+          console.log(key, record);
+          setData(record);
+          localStorage.setItem('user', JSON.stringify(record));
+          const res = await axios.post('/user/update', record)
+          message.success('修改成功');
         }
       }}
       columns={[
@@ -95,9 +75,9 @@ export default () => {
           ellipsis: true,
         },
         {
-          title: '学号',
-          key: 'userId',
-          dataIndex: 'userId',
+          title: '用户名',
+          key: 'username',
+          dataIndex: 'username',
           copyable: true,
           editable: false,
         },
@@ -109,8 +89,8 @@ export default () => {
         },
         {
           title: '性别',
-          key: 'sex',
-          dataIndex: 'sex',
+          key: 'gender',
+          dataIndex: 'gender',
           copyable: false,
           renderText: (text) => (text === 1 ? '男' : '女'),
           renderFormItem: () => {
@@ -121,60 +101,74 @@ export default () => {
           }
         },
         {
-          title: '专业',
-          key: 'major',
-          dataIndex: 'major',
-          copyable: false,
-        },
-        {
-          title: '学院',
-          key: 'college',
-          dataIndex: 'college',
-          renderFormItem: () => {
-            return <Select options={[
-              '信息管理与人工智能学院', '财政税务学院', '会计学院', '经济学院', '外国语学院', '人文与传播学院',
-              '创业学院', '公共管理学院', '金融学院', '法学院学院', '数据科学学院', '艺术学院', '马克思学院'
-            ].map((v:string) => ({value:v, label: v}))} />
-          }
-        },
-        {
-          title: '联系电话',
+          title: '电话号码',
           key: 'phone',
           dataIndex: 'phone',
           copyable: true,
         },
         {
-          title: '地址',
-          key: 'address',
-          dataIndex: 'address',
+          title: '身份证号',
+          key: 'idNo',
+          dataIndex: 'idNo',
           copyable: true,
         },
         {
+          title: '工作年限',
+          key: 'workingSeniority',
+          dataIndex: 'workingSeniority',
+          copyable: false,
+          valueType: 'digit'
+        },
+        {
+          title: '身体状况',
+          key: 'conditions',
+          dataIndex: 'conditions',
+          renderText: (text) => (text === 0 ? '一般' : ( text === 1 ? '健康' : '带伤')),
+          renderFormItem: () => {
+            return <Select options={[
+              { value: 1, label: '健康' },
+              { value: 0, label: '一般' },
+              { value: 2, label: '带伤' },
+
+            ]} />
+          }
+        },
+        {
           title: '工作单位',
-          key: 'employer',
-          dataIndex: 'employer',
+          key: 'workPlace',
+          dataIndex: 'workPlace',
         },
         {
           title: '职业',
           key: 'job',
           dataIndex: 'job',
         },{
-          title: '邮箱',
-          key: 'email',
-          dataIndex: 'email',
-          copyable: true,
+          title: '技能',
+          key: 'skill',
+          dataIndex: 'skill',
         },{
-          title: '权限',
-          key: 'isManager',
-          dataIndex: 'isManager',
+          title: '级别',
+          key: 'grade',
+          dataIndex: 'grade',
+          renderText: (text) => (text === 0 ? '队长' : '队员'),
           editable: false,
-          renderText: (text) => (text === 0 ? '校友' : (text === 1 ? '学校管理员' : '校友会管理员')),
         },{
-          title: '是否兼职导师',
-          key: 'isTutor',
-          dataIndex: 'isTutor',
-          editable: false,
-          renderText: (text) => (text === 0 ? '否' : '是'),
+          title: '状态',
+          key: 'state',
+          dataIndex: 'state',
+          renderText: (text) => (text === 0 ? '在岗' : ( text === 1 ? '出任务' : '忙碌')),
+          renderFormItem: () => {
+            return <Select options={[
+              { value: 1, label: '出任务' },
+              { value: 0, label: '在岗' },
+              { value: 2, label: '忙碌' },
+
+            ]} />
+          }
+        },{
+          title: '密码',
+          key: 'password',
+          dataIndex: 'password',
         },{
           title: '注册时间',
           key: 'createTime',
