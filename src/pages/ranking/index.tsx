@@ -15,6 +15,7 @@ export interface RankingItemType {
 	name: string;
 	username: string;
   score: number;
+  grade: string;
   key?: number;
 }
 
@@ -120,23 +121,44 @@ export default () => {
       ),
   });
 
+  const grades = [
+    '倔强青铜', '秩序白银', '荣耀黄金', '尊贵铂金', '永恒钻石', '至尊星耀', '最强王者', '无双王者', '荣耀王者', '传奇王者'
+  ];
+
+  const colors = [
+    'geekblue', 'blue', 'purple', 'cyan', 'green', 'gold', 'orange', 'volcano', 'red', 'magenta'
+  ]
+
   const columns: ColumnsType<RankingItemType> = [
+    {
+      title: '等级',
+      dataIndex: 'grade',
+      key: 'name',
+      align: 'center',
+      render: (text) => <Tag color={colors[grades.indexOf(text)]}>{text}</Tag>,
+      filterSearch: true,
+      filters: grades.map(v => ({ text: v, value: v })),
+      onFilter: (value, record) => record.grade === value,
+    },
     {
       title: '名字',
       dataIndex: 'name',
       key: 'name',
+      align: 'center',
       ...getColumnSearchProps('name'),
     },
     {
       title: '用户名',
       dataIndex: 'username',
       key: 'username',
+      align: 'center',
       ...getColumnSearchProps('username'),
     },
     {
       title: '分数',
       dataIndex: 'score',
       key: 'score',
+      align: 'center',
       sorter: (a, b) => b.score - a.score
     },
   ];

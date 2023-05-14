@@ -17,6 +17,7 @@ export interface PersonalInfoItem {
   id: number;
 	name: string;
 	username: string;
+  advantage: string;
 	gender: number;
 	phone: string;
 	birthday: string;
@@ -171,6 +172,15 @@ export default () => {
           width: 180,
           readonly: true,
           ...getColumnSearchProps('username') as any
+        },
+        {
+          title: '优势',
+          key: 'advantage',
+          dataIndex: 'advantage',
+          valueType: 'text',
+          width: 100,
+          readonly: true,
+          ...getColumnSearchProps('advantage') as any
         },
         {
           title: '性别',
@@ -335,15 +345,7 @@ export default () => {
           width: 180,
           ...getColumnSearchProps('password') as any
         },
-        // {
-        //   title: '时间区间',
-        //   key: 'dateTimeRange',
-        //   dataIndex: 'createdAtRange',
-        //   valueType: 'dateTimeRange',
-        //   search: {
-        //     transform: (value: any) => ({ startTime: value[0], endTime: value[1] }),
-        //   },
-        // },
+        localStorage.getItem('role') === '0' &&
         {
           title: '操作',
           key: 'option',
@@ -394,6 +396,7 @@ export default () => {
     }} onClick={
       async () => {
         const record:PersonalInfoItem = {name: '', username: Random.id(), id: dataSource[0].id + 1,
+        advantage: '',
           gender: 0,
           phone: '',
           birthday: getTimeFormat(),

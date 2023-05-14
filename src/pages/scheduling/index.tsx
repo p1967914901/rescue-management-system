@@ -4,18 +4,15 @@ import React, { useEffect, useState } from 'react';
 import axios from '../../utils/axios';
 import './index.less';
 
-export interface PersonList {
-	type: number;
-	name: string;
-	username: string;
-}
-
 export interface RootObject {
 	id: number;
 	year: number;
 	month: number;
 	day: number;
-	personList: PersonList[];
+	name1: string;
+	username1: string;
+  name2: string;
+	username2: string;
 }
 
 const getListData = (value: Moment) => {
@@ -80,8 +77,14 @@ export default () => {
 
   const dateCellRender = (value: Moment) => {
     const listData = getListData(value);
-    const personList = data.find(item => item.year === value.year() && item.month === value.month() + 1 && item.day === value.date())?.personList;
-    console.log(value.year(), value.month() + 1, value.day(), personList)
+    const day = data.find(item => item.year === value.year() && item.month === value.month() + 1 && item.day === value.date());
+    const personList = [{
+      username: day?.username1,
+      name: day?.name1,
+    }, {
+      username: day?.username2,
+      name: day?.name2,
+    }]
     return (
       <ul className="events">
         {personList?.map(item => (

@@ -22,6 +22,7 @@ export interface PersonalInfoItem {
 	isLeave: number;
 	reason: string;
 	password: string;
+  advantage: string;
 	createTime: string;
 }
 
@@ -31,6 +32,7 @@ export default () => {
     name: '', //
     username: '', //
     id: 9,
+    advantage: '',
     gender: 0, //
     phone: '', //
     birthday: '', //
@@ -170,6 +172,15 @@ export default () => {
           key: 'password',
           dataIndex: 'password',
         },{
+          title: '优势',
+          key: 'advantage',
+          dataIndex: 'advantage',
+          renderFormItem: () => {
+            return <Select style={{ width: 100 }} options={
+              ['应急救援', '社会救助', '社会培训', '宣讲演练', '其他'].map(s => ({ label: s, value: s }))
+            } />
+          }
+        }, {
           title: '注册时间',
           key: 'createTime',
           dataIndex: 'createTime',
