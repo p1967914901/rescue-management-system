@@ -89,17 +89,43 @@ const App: React.FC = () => {
       { title: '性别', dataIndex: 'gender', key: 'gender', render: (text) => text === 1 ? '男' : '女' },
       { title: '电话号码', dataIndex: 'phone', key: 'phone' },
       { title: '是否确认', dataIndex: 'isSure', key: 'isSure', render: (text) => <Tag color={text === '确认' ? '#87d068' : '#f50'}>{text}</Tag> },
-      // {
-      //   title: '操作',
-      //   dataIndex: 'operation',
-      //   key: 'operation',
-      //   render: () => (
-      //     <Space size="middle">
-      //       <a>删除</a>
-      //       <a>Stop</a>
-      //     </Space>
-      //   ),
-      // },
+      {
+        title: '操作',
+        dataIndex: 'operation',
+        key: 'operation',
+        render: (value, r) => (
+          <Space size="middle">
+            <a onClick={
+              async () => {
+                console.log(value, record, r);
+                const res = await axios.post('/activity/rematch', {...record, p: r});
+                const newP = res.data.data;
+                const newRecord = JSON.parse(JSON.stringify(record));
+                newRecord.participants = record.participants.map((item:any) => {
+                  return item.username === r.username ? newP : item;
+                });
+                setDataSource(dataSource.map(item => item.id === newRecord.id ? newRecord : item));
+              }
+            }>
+              重新匹配
+            </a>
+            <a onClick={
+              async () => {
+                console.log(value, record, r);
+                if (r.isSure === '确认') {
+                  message.warn('已确认，请勿重复确认');
+                } else {
+                  const res = await axios.post('/activity/sure', {...record, p: r});
+                  r.isSure = '确认';
+                  setDataSource([...dataSource]);
+                }
+              }
+            }>
+              确认
+            </a>
+          </Space>
+        ),
+      },
     ];
 
     return <Table columns={columns} dataSource={record.participants} pagination={false} />;
@@ -394,14 +420,16 @@ const App: React.FC = () => {
         submitTimeout={2000}
         onFinish={async (values) => {
           const record = values;
+          // console.log('r', JSON.parse(JSON.stringify(record)))
           for(let i = 0; i < record.equipments.length; i++) {
             if(typeof record.equipments[i] !== 'string') {
               record.equipments[i] = {
-                id: record.equipments[i].id,
+                id: (record.equipments[i] as any).value,
                 name: (record.equipments[i] as any).label
               }
             }
           }
+          record.equipments = record.equipments.map(v => ({ id: v.id, name: v.name }));
           if(typeof record.activityType !== 'string') {
             record.activityType = (record.activityType as any).value;
           }
@@ -417,6 +445,7 @@ const App: React.FC = () => {
           } else {
             record.id = detail.id;
             record.participants = detail.participants;
+            console.log(record)
             const res = await axios.post('/activity/update', record);
             if (res.status === 200) {
               console.log(res.data.data);
