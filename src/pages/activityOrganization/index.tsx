@@ -14,6 +14,7 @@ import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
 import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDigit, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { IRouteComponentProps, history, useLocation } from 'umi';
+import compareTime from '@/utils/compareTime';
 
 
 export interface Participant {
@@ -32,6 +33,7 @@ interface EquipmentItemType {
 export interface RootObject {
 	id: number;
 	activityType: string;
+  status: string;
 	reporterName: string;
 	reporterPhone: string;
 	reporterAddress: string;
@@ -63,6 +65,7 @@ const App: React.FC = () => {
   const [detail, setDetail] = useState<RootObject>({
     "id": 99999,
     "activityType": "应急救援",
+    "status": "进行中",
     "reporterName": "",
     "reporterPhone": "",
     "reporterAddress": "",
@@ -104,6 +107,7 @@ const App: React.FC = () => {
                 newRecord.participants = record.participants.map((item:any) => {
                   return item.username === r.username ? newP : item;
                 });
+                console.log('res', newP)
                 setDataSource(dataSource.map(item => item.id === newRecord.id ? newRecord : item));
               }
             }>
@@ -127,6 +131,10 @@ const App: React.FC = () => {
         ),
       },
     ];
+
+    if (localStorage.getItem('role') !== '0') {
+      columns.pop();
+    }
 
     return <Table columns={columns} dataSource={record.participants} pagination={false} />;
   };
@@ -223,16 +231,32 @@ const App: React.FC = () => {
       ),
   });
 
+  const colors = [
+    'geekblue', 'blue', 'purple', 'green', 'gold', 'orange', 'volcano', 'red', 'magenta'
+  ];
+
+  const types = ['应急救援', '社会救助', '社会培训', '宣讲演练', '其他'];
+
   const columns: TableColumnsType<RootObject> = [
     {
       title: '类型',
       dataIndex: 'activityType',
       key: 'activityType',
-      // render: (text) => <Tag color={ text === '收入' ? '#87d068' : '#f50' }>{ text }</Tag>,
+      render: (text) => <Tag color={colors[types.indexOf(text)]}>{ text }</Tag>,
       filterSearch: true,
       width: 120,
       filters: ['应急救援', '社会救助', '社会培训', '宣讲演练', '其他'].map(v => ({value: v, text: v})),
       onFilter: (value, record) => record.activityType === value,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (text) => <Tag color={text === '进行中' ? '#f50' : (text === '未开始' ? '#2db7f5' : '#87d068')}>{ text }</Tag>,
+      filterSearch: true,
+      width: 120,
+      filters: ['进行中', '未开始', '已结束'].map(v => ({value: v, text: v})),
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: '求救人姓名',
@@ -323,7 +347,7 @@ const App: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 130,
+      width: 150,
       fixed: 'right',
       render: (_, record) => (
         <Space size="middle">
@@ -356,7 +380,18 @@ const App: React.FC = () => {
           >
             <a>删除</a>
           </Popconfirm>
-
+          {record.status === '进行中' && <a onClick={
+            async () => {
+              const res = await axios.post('/activity/finish', record);
+              if (res.status === 200) {
+                message.success('结项成功');
+              }
+              record.status = '已结束';
+              setDataSource(dataSource.map(item => item.id !== record.id ? item : record))
+            }
+          }>
+            结束
+          </a>}
         </Space>
       ),
     },
@@ -433,7 +468,10 @@ const App: React.FC = () => {
           if(typeof record.activityType !== 'string') {
             record.activityType = (record.activityType as any).value;
           }
-          // console.log(record);
+          const now = getTimeFormat('yyyy-MM-dd HH:mm');
+          record.status = compareTime(record.createTime, now) <= 0 ? '进行中' : '未开始';
+          console.log(record);
+          // return;
           if (action === '新增') {
             const res = await axios.post('/activity/insert', record);
             if (res.status === 200) {
