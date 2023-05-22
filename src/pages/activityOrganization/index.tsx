@@ -1,6 +1,6 @@
 import { DownOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import { Badge, Dropdown, Space, Table, Tag } from 'antd';
+import { Badge, Dropdown, Space, Table, Tag, Modal, Rate } from 'antd';
 import axios from '../../utils/axios';
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -16,6 +16,7 @@ import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDi
 import { IRouteComponentProps, history, useLocation } from 'umi';
 import compareTime from '@/utils/compareTime';
 
+const { confirm } = Modal;
 
 export interface Participant {
 	name: string;
@@ -80,6 +81,8 @@ const App: React.FC = () => {
     'detail': '',
     "participants": []
   });
+  // const [value, setValue] = useState(0);
+  const rate = useRef(0);
 
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -236,6 +239,7 @@ const App: React.FC = () => {
   ];
 
   const types = ['应急救援', '社会救助', '社会培训', '宣讲演练', '其他'];
+  const desc = ['非常糟糕', '差劲', '普通', '很好', '完美'];
 
   const columns: TableColumnsType<RootObject> = [
     {
@@ -382,12 +386,26 @@ const App: React.FC = () => {
           </Popconfirm>
           {record.status === '进行中' && <a onClick={
             async () => {
-              const res = await axios.post('/activity/finish', record);
-              if (res.status === 200) {
-                message.success('结项成功');
-              }
-              record.status = '已结束';
-              setDataSource(dataSource.map(item => item.id !== record.id ? item : record))
+              confirm({
+                title: '对本次任务完成情况的评价',
+                // icon: <ExclamationCircleFilled />,
+                content: <span>
+                  <Rate tooltips={desc} onChange={(v) => rate.current = v}  />
+                  {rate.current ? <span className="ant-rate-text">{desc[rate.current - 1]}</span> : ''}
+                </span>,
+                onOk: async () => {
+                  const res = await axios.post('/activity/finish', {...record, rate: rate.current});
+                  if (res.status === 200) {
+                    message.success('结项成功');
+                  }
+                  record.status = '已结束';
+                  setDataSource(dataSource.map(item => item.id !== record.id ? item : record))
+                },
+                onCancel() {
+                  console.log('Cancel');
+                },
+              });
+
             }
           }>
             结束
@@ -571,6 +589,7 @@ const App: React.FC = () => {
           />
 
       </ModalForm>
+
     </>
   );
 };
