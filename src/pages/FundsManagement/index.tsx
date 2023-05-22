@@ -11,6 +11,7 @@ import Highlighter from 'react-highlight-words';
 import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
 import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDigit, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import Modal from './Modal';
 
 
 export interface FundsInfoItemType {
@@ -34,6 +35,7 @@ export default () => {
   const searchInput = useRef<InputRef>(null);
   const [form] = Form.useForm<FundsInfoItemType>();
   const [modalVisit, setModalVisit] = useState(false);
+  const [pieModalVisit, setPieModalVisit] = useState(false);
   const [fundDetail, setFundDetail] = useState({
     id: 0,
     type: '',
@@ -229,6 +231,48 @@ export default () => {
 
   return (
     <>
+    <div style={{
+        // backgroundColor: 'red'
+      }}>
+        {localStorage.getItem('role') === '0' && <Button type='primary' style={{
+          float: 'right'
+
+          // position: 'absolute',
+          // top: 40,
+          // right: 50,
+        }} onClick={
+          async () => {
+            await setAction('新增');
+            const record:FundsInfoItemType = {
+              id: data[0].id + 1,
+              type: '',
+              track: '',
+              num: 0,
+              detail: '',
+              createTime: getTimeFormat(),
+            }
+            record.key = record.id;
+            await setFundDetail(record as any);
+            setModalVisit(true);
+            // axios.post('/fund/insert', record)
+            //   .then(res => {
+            //     if (res.status === 200) {
+            //       message.success('新增成功');
+            //     }
+            //   })
+          }
+        }>
+          新增
+        </Button>}
+        <Button type='primary' style={{
+          float: 'right',
+          marginRight: '10px'
+        }} onClick={() => {
+          setPieModalVisit(true);
+        }}>
+          概览
+        </Button>
+      </div>
       <Table  columns={columns} dataSource={data} />
       <ModalForm<FundsInfoItemType>
         title={action}
@@ -335,34 +379,7 @@ export default () => {
           rules={[{ required: true, message: '请填写详情' }]}
         />
       </ModalForm>
-      {localStorage.getItem('role') === '0' && <Button type='primary' style={{
-        position: 'absolute',
-        top: 40,
-        right: 50,
-      }} onClick={
-        async () => {
-          await setAction('新增');
-          const record:FundsInfoItemType = {
-            id: data[0].id + 1,
-            type: '',
-            track: '',
-            num: 0,
-            detail: '',
-            createTime: getTimeFormat(),
-          }
-          record.key = record.id;
-          await setFundDetail(record as any);
-          setModalVisit(true);
-          // axios.post('/fund/insert', record)
-          //   .then(res => {
-          //     if (res.status === 200) {
-          //       message.success('新增成功');
-          //     }
-          //   })
-        }
-      }>
-        新增
-      </Button>}
+      {pieModalVisit && <Modal data={data} pieModalVisit={pieModalVisit} setPieModalVisit={setPieModalVisit} />}
     </>
   )
 }
