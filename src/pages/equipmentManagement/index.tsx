@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Space, Table, Tag } from 'antd';
+import { Space, Table, Tag, Affix, Progress } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import axios from '../../utils/axios';
 import type { InputRef } from 'antd';
@@ -55,6 +55,12 @@ export default () => {
     key: 0,
   })
   const [action, setAction] = useState<'新增' | '编辑'>('新增');
+
+  const [statistics, setStatistics] = useState<{
+    label: string;
+    color: string;
+    value: number;
+  }[]>([]);
   const handleSearch = (
     selectedKeys: string[],
     confirm: (param?: FilterConfirmProps) => void,
@@ -241,7 +247,7 @@ export default () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname !== '.login' && !localStorage.length) {
+    if (location.pathname !== 'login' && !localStorage.length) {
       history.push('/login')
     }
   }, []);
@@ -252,8 +258,68 @@ export default () => {
       })
   }, []);
 
+  useEffect(() => {
+    const arr = [{ label: '在库', color: '#97ce74', value: 0 }, { label: '使用中', color: '#5bb4ef', value: 0 }, { label: '损坏', color: '#ec622b', value: 0 }];
+    const labels = ['在库', '使用中', '损坏'];
+    for(const item of data) {
+      arr[labels.indexOf(item.status)].value ++;
+    }
+    for(const item of arr) {
+      item.value /= data.length;
+      item.value *= 100;
+      item.value = parseFloat(item.value.toFixed(2));
+    }
+    arr[2].value = 100 - arr[0].value - arr[1].value;
+    setStatistics(arr);
+  }, [data]);
+
   return (
     <>
+      <div style={{
+        // backgroundColor: 'red'
+      }}>
+        {localStorage.getItem('role') === '0' && <Button type='primary' style={{
+          float: 'right'
+          // position: 'absolute',
+          // top: 40,
+          // right: 50,
+        }} onClick={
+          async () => {
+            await setAction('新增');
+            const record:EquipInfoItemType = {
+              id: data[0].id + 1,
+              type: '',
+              name: '',
+              reason: '',
+              status: '',
+              createTime: getTimeFormat(),
+            }
+            record.key = record.id;
+            await setEquipDetail(record as any);
+            setModalVisit(true);
+            // axios.post('/fund/insert', record)
+            //   .then(res => {
+            //     if (res.status === 200) {
+            //       message.success('新增成功');
+            //     }
+            //   })
+          }
+        }>
+          新增
+        </Button>}
+        {
+          statistics.map(item => (
+            <div style={{
+              width: '300px',
+              display: 'inline-block',
+              marginRight: '30px'
+            }}>
+              <Progress percent={item.value} strokeColor={item.color}/>
+
+            </div>
+          ))
+        }
+      </div>
       <Table  columns={columns} dataSource={data}
         onChange={
           (pagination, filters) => {
@@ -380,34 +446,7 @@ export default () => {
           rules={[{ required: true, message: '请填写原因' }]}
         />
       </ModalForm>
-      {localStorage.getItem('role') === '0' && <Button type='primary' style={{
-        position: 'absolute',
-        top: 40,
-        right: 50,
-      }} onClick={
-        async () => {
-          await setAction('新增');
-          const record:EquipInfoItemType = {
-            id: data[0].id + 1,
-            type: '',
-            name: '',
-            reason: '',
-            status: '',
-            createTime: getTimeFormat(),
-          }
-          record.key = record.id;
-          await setEquipDetail(record as any);
-          setModalVisit(true);
-          // axios.post('/fund/insert', record)
-          //   .then(res => {
-          //     if (res.status === 200) {
-          //       message.success('新增成功');
-          //     }
-          //   })
-        }
-      }>
-        新增
-      </Button>}
+
     </>
   )
 }
