@@ -82,7 +82,7 @@ const App: React.FC = () => {
     "participants": []
   });
   // const [value, setValue] = useState(0);
-  const rate = useRef(0);
+  const rate = useRef<any>({});
 
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -386,12 +386,25 @@ const App: React.FC = () => {
           </Popconfirm>
           {record.status === '进行中' && <a onClick={
             async () => {
+              const { participants } = record;
+              const arr = ['总体', ...participants.map(v => v.name)];
+              rate.current = arr.reduce((pre, cur) => {
+                (pre as any)[cur] = 0;
+                return pre;
+              }, {});
               confirm({
                 title: '对本次任务完成情况的评价',
                 // icon: <ExclamationCircleFilled />,
                 content: <span>
-                  <Rate tooltips={desc} onChange={(v) => rate.current = v}  />
-                  {rate.current ? <span className="ant-rate-text">{desc[rate.current - 1]}</span> : ''}
+                  {
+                    arr.map(value => (
+                      <div>
+                        <span className="ant-rate-text">{value}： </span>
+                        <Rate tooltips={desc} onChange={(v) => rate.current[value] = v}  />
+                      </div>
+                    ))
+                  }
+
                 </span>,
                 onOk: async () => {
                   const res = await axios.post('/activity/finish', {...record, rate: rate.current});
