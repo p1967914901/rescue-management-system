@@ -3,7 +3,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import React, { useRef, useState, useEffect } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import type { InputRef } from 'antd';
-import { Button, Input, Space, message } from 'antd';
+import { Button, Input, Space, message, Form } from 'antd';
 import type { ColumnsType, ColumnType } from 'antd/es/table';
 import type { FilterConfirmProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
@@ -11,6 +11,9 @@ import axios from '../../utils/axios';
 import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
 import { IRouteComponentProps, history, useLocation } from 'umi';
+import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDigit, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import validatePhone from '@/utils/validatePhone';
+import validateIdCard from '@/utils/validateIdCard';
 
 
 export interface PersonalInfoItem {
@@ -43,9 +46,31 @@ export default () => {
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef<InputRef>(null);
   const [dataSource, setDataSource] = useState<PersonalInfoItem[]>([]);
-  const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
   const ref = useRef<ProFormInstance>();
-
+  const [form] = Form.useForm<PersonalInfoItem>();
+  const [action, setAction] = useState<'新增' | '编辑'>('新增');
+  const [modalVisit, setModalVisit] = useState(false);
+  const [detail, setDetail] = useState({
+    id: 0,
+    name: '',
+    username: '',
+    advantage: '',
+    gender: 0,
+    phone: '',
+    birthday: getTimeFormat(),
+    idNo: '',
+    workingSeniority: 0,
+    conditions: 0,
+    job: '',
+    workPlace: '',
+    skill: '',
+    grade: 0,
+    state: 0,
+    isLeave: 0,
+    reason: '',
+    password: '',
+    createTime: getTimeFormat()
+  })
 
   const handleSearch = (
     selectedKeys: string[],
@@ -356,7 +381,10 @@ export default () => {
             <a
               key="a"
               onClick={() => {
-                action?.startEditable(row.username);
+                // console.log(row)
+                setDetail(row);
+                setModalVisit(true);
+                setAction('编辑');
               }}
             >
               编辑
@@ -369,58 +397,270 @@ export default () => {
       rowKey="key"
       headerTitle="人员管理"
       scroll={{ x: 1500, y: 450 }}
-      editable={{
-        type: 'single',
-        editableKeys,
-        onSave: async (rowKey, data) => {
-          // console.log(rowKey, data, row);
-          axios.post('/user/update', data)
-            .then(res => {
-              if (res.status === 200) {
-                message.success('修改成功');
-              }
-            })
-          setDataSource(dataSource.map(v => v.username === rowKey ? data: v));
-        },
-        onChange: setEditableRowKeys,
-        onDelete: async (rowKey) => {
-          setDataSource(dataSource.filter(v => v.username !== rowKey));
-        },
-
-      }}
+      // editable={false}
     />
+    <ModalForm<PersonalInfoItem>
+        title={action}
+        // form={form as any}
+        initialValues={{
+          ...detail
+        }}
+        autoFocusFirstInput
+        onOpenChange={setModalVisit}
+        open={modalVisit}
+        modalProps={{
+          destroyOnClose: true,
+          onCancel: () => {
+            form.resetFields();
+            console.log(111)
+          },
+        }}
+
+        submitTimeout={2000}
+        onCanPlay={() => {
+          form.resetFields();
+          console.log(111)
+          return true
+        }}
+        onFinish={async (values) => {
+          console.log(values)
+          const record = {...values, createTime: getTimeFormat()};
+
+          // 检测手机号是否合法
+          if (!validatePhone(record.phone)) {
+            message.error('手机号不合法，请重新输入');
+            return false;
+          }
+          // 检测身份证号是否合法
+          if (!validateIdCard(record.idNo)) {
+            message.error('身份证号不合法，请重新输入');
+            return false;
+          }
+
+          for(const key of Object.keys(record)) {
+            if (['gender', 'conditions', 'advantage', 'grade', 'state', 'isLeave'].includes(key) && !['number', 'string'].includes(typeof record[key as 'name'])) {
+              record[key as 'name'] = (record[key as 'name'] as any).value;
+            }
+          }
+
+          if (action === '新增') {
+            const res = await axios.post('/user/insert', record);
+            if (res.status === 200) {
+              console.log(res.data.data)
+              res.data.data.key = res.data.data.id;
+              await setDataSource([res.data.data, ...dataSource]);
+              message.success('添加成功');
+            }
+          } else {
+            record.id = detail.id;
+            console.log(record)
+            const res = await axios.post('/user/update', record);
+            if (res.status === 200) {
+              record.key = record.id + '';
+              // console.log(record, data);
+              setDataSource(dataSource.map(item => item.id === record.id ? record : item));
+              message.success('编辑成功');
+            }
+          }
+          form.resetFields()
+          return true;
+        }}
+      >
+        {/* <ProForm
+          submitter={false}
+          initialValues={{
+            ...detail,
+            // tag: {label: detailData['tag'], value: detailData['tag']}
+          }}
+          // onChange={(e) => console.log(e)}
+          onValuesChange={(_, values) => {
+            console.log(_, values);
+            setDetail(values as any);
+            // form.setFieldsValue(values);
+          }}
+          onFinish={async (value) => console.log(value)}
+          form={form}
+
+        > */}
+        <ProForm.Group>
+          <ProFormText
+            width="xs"
+            name="name"
+            label="姓名"
+            rules={[{ required: true, message: '请输入姓名' }]}
+          />
+          <ProFormText
+            width="sm"
+            name="username"
+            label="用户名"
+            rules={[{ required: true, message: '请输入用户名' }]}
+          />
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={['应急救援', '社会救助', '社会培训', '宣讲演练', '其他'].map(s => ({value: s, label: s}))}
+            name="advantage"
+            label="优势"
+            rules={[{ required: true, message: '请选择优势' }]}
+          />
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={[
+              {value: 1, label: '男'},
+              {value: 0, label: '女'},
+            ]}
+            name="gender"
+            label="性别"
+            rules={[{ required: true, message: '请选择性别' }]}
+          />
+
+
+        </ProForm.Group>
+        <ProForm.Group>
+          <ProFormText
+            width="sm"
+            name="phone"
+            label="电话号码"
+            rules={[{ required: true, message: '请输入电话号码' }]}
+          />
+          <ProFormDatePicker name="birthday" label="生日"
+            rules={[{ required: true, message: '请填写生日' }]}
+          />
+          <ProFormText
+            width="sm"
+            name="idNo"
+            label="身份证号"
+            rules={[{ required: true, message: '请输入身份证号' }]}
+          />
+        </ProForm.Group>
+        <ProForm.Group>
+          <ProFormDigit name="workingSeniority" label="工作年限" width="xs" rules={[{ required: true, message: '请输入工作年限' }]}/>
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={[
+              {value: 0, label: '一般'},
+              {value: 1, label: '健康'},
+              {value: 2, label: '带伤'},
+            ]}
+            name="conditions"
+            label="身体状况"
+            rules={[{ required: true, message: '请选择身体状况' }]}
+          />
+          <ProFormText
+            width="xs"
+            name="job"
+            label="工作"
+            rules={[{ required: true, message: '请输入工作' }]}
+          />
+          <ProFormText
+            width="sm"
+            name="workPlace"
+            label="工作地点"
+            rules={[{ required: true, message: '请输入工作地点' }]}
+          />
+
+        </ProForm.Group>
+        <ProForm.Group>
+          <ProFormText
+            width="sm"
+            name="skill"
+            label="技能"
+            rules={[{ required: true, message: '请输入技能' }]}
+          />
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={[
+              {value: 0, label: '队长'},
+              {value: 1, label: '队员'},
+            ]}
+            name="grade"
+            label="职级"
+            rules={[{ required: true, message: '请选择职级' }]}
+          />
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={[
+              {value: 0, label: '在岗'},
+              {value: 1, label: '出任务'},
+              {value: 2, label: '忙碌'},
+            ]}
+            name="state"
+            label="状态"
+            rules={[{ required: true, message: '请选择状态' }]}
+          />
+          <ProFormSelect
+            width="xs"
+            fieldProps={{
+              labelInValue: true,
+            }}
+            options={[
+              {value: 0, label: '否'},
+              {value: 1, label: '是'},
+            ]}
+            name="isLeave"
+            label="是否离队"
+            rules={[{ required: true, message: '请选择是否离队' }]}
+          />
+        </ProForm.Group>
+        <ProFormText.Password
+            width="sm"
+            name="password"
+            label="密码"
+            rules={[{ required: true, message: '请输入密码' }]}
+          />
+        <ProFormTextArea
+          width="xl"
+          label="原因"
+          name="reason"
+          fieldProps={{
+            autoSize: true
+          }}
+          rules={[{ required: true, message: '请填写原因' }]}
+        />
+{/* </ProForm> */}
+      </ModalForm>
     <Button type='primary' style={{
       position: 'absolute',
       top: 90,
       right: 170,
     }} onClick={
       async () => {
-        const record:PersonalInfoItem = {name: '', username: Random.id(), id: dataSource[0].id + 1,
-        advantage: '',
-          gender: 0,
-          phone: '',
-          birthday: getTimeFormat(),
-          idNo: '',
-          workingSeniority: 0,
-          conditions: 1,
-          job: '',
-          workPlace: '',
-          skill: '',
-          grade: 1,
-          state: 1,
-          isLeave: 0,
-          reason: '',
-          password: Random.id().slice(0, 6),
-          createTime: getTimeFormat(),
-        }
-        record.key = record.username;
-        setDataSource([record, ...dataSource]);
-        // axios.post('/user/insert', record)
-        //   .then(res => {
-        //     if (res.status === 200) {
-        //       message.success('新增成功');
-        //     }
-        //   })
+        setModalVisit(true);
+        setAction('新增');
+        // const record:PersonalInfoItem = {name: '', username: Random.id(), id: dataSource[0].id + 1,
+        // advantage: '',
+        //   gender: 0,
+        //   phone: '',
+        //   birthday: getTimeFormat(),
+        //   idNo: '',
+        //   workingSeniority: 0,
+        //   conditions: 1,
+        //   job: '',
+        //   workPlace: '',
+        //   skill: '',
+        //   grade: 1,
+        //   state: 1,
+        //   isLeave: 0,
+        //   reason: '',
+        //   password: Random.id().slice(0, 6),
+        //   createTime: getTimeFormat(),
+        // }
+        // record.key = record.username;
+        // setDataSource([record, ...dataSource]);
       }
     }>
       新增

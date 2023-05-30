@@ -270,6 +270,7 @@ export default () => {
       item.value = parseFloat(item.value.toFixed(2));
     }
     arr[2].value = 100 - arr[0].value - arr[1].value;
+    arr[2].value = parseFloat(arr[2].value.toFixed(2))
     setStatistics(arr);
   }, [data]);
 
