@@ -9,32 +9,27 @@ export default (props:any) => {
 
   useEffect(()=> {
     const tree = [{
-      name: '收入',
-      children: [
-        { name: '政府下拨', value: 0 }, { name: '企业捐助', value: 0 }, { name: '个人自筹', value: 0 }, { name: '其他', value: 0 }
-      ]
+      name: '在库',
+      value: 0,
+      children: [{ name: 0, value: 0}]
     }, {
-      name: '支出',
-      children: [
-        { name: '办公支出', value: 0 }, { name: '购买设备', value: 0 }, { name: '培训费用', value: 0 },
-        { name: '购买服务', value: 0 }, { name: '其他', value: 0 }
-      ]
+      name: '使用中',
+      value: 0,
+      children: [{ name: 0, value: 0}]
+    }, {
+      name: '维修',
+      value: 0,
+      children: [{ name: 0, value: 0}]
     }];
+    const status = ['在库', '使用中', '维修'];
     for(const item of data) {
-      const children = tree[item.type === '收入' ? 0 : 1].children;
-      for(const child of children) {
-        if (child.name === item.track) {
-          child.value += item.num;
-          break;
-        }
-      }
+      const ite = tree[status.indexOf(item.status)];
+      ite['value'] ++;
+      ite['children'][0]['name'] ++;
+      ite['children'][0]['value'] ++;
+
     }
-    for(const tr of tree) {
-      const children = tr['children'];
-      for(const child of children) {
-        (child as any)['children'] = [{ name: child.value, value: child.value }]
-      }
-    }
+
     type EChartsOption = echarts.EChartsOption;
     const chartDom = document.getElementById('pie');
     // console.log(chartDom)
@@ -49,16 +44,7 @@ export default (props:any) => {
           borderWidth: 2
         },
         levels: [{}, {
-          r0: '15%',
-          r: '35%',
-          itemStyle: {
-            borderWidth: 2
-          },
-          label: {
-            // rotate: 'tangential'
-          }
-        },{
-          r0: '35%',
+          r0: '45%',
           r: '75%',
           itemStyle: {
             borderWidth: 2
@@ -68,7 +54,7 @@ export default (props:any) => {
           }
         },{
           r0: '75%',
-          r: '77%',
+          r: '75%',
           label: {
             position: 'outside',
             padding: 3,

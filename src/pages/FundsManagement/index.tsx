@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import axios from '../../utils/axios';
 import type { InputRef } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Input, message, Popconfirm, Form } from 'antd';
+import { Button, Input, message, Popconfirm, Form, Progress } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 import type { FilterConfirmProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
@@ -46,6 +46,11 @@ export default () => {
     key: 0,
   })
   const [action, setAction] = useState<'新增' | '编辑'>('新增');
+  const [statistics, setStatistics] = useState<{
+    label: string;
+    color: string;
+    value: number;
+  }[]>([]);
   const handleSearch = (
     selectedKeys: string[],
     confirm: (param?: FilterConfirmProps) => void,
@@ -229,6 +234,15 @@ export default () => {
       })
   }, []);
 
+  useEffect(() => {
+    const arr = [{ label: '收入', color: '#87d068', value: 0 }, { label: '支出', color: '#f50', value: 0 }];
+    const labels = ['收入', '支出'];
+    for(const item of data) {
+      arr[labels.indexOf(item.type)].value += item.num;
+    }
+    setStatistics(arr);
+  }, [data]);
+
   return (
     <>
     <div style={{
@@ -272,6 +286,18 @@ export default () => {
         }}>
           概览
         </Button>
+        {
+          statistics.map(item => (
+            <div style={{
+              width: '300px',
+              display: 'inline-block',
+              marginRight: '70px'
+            }}>
+              <Progress percent={item.value / (statistics[0].value + statistics[1].value) * 100} format={(percent) => percent! * (statistics[0].value + statistics[1].value)} strokeColor={item.color}/>
+
+            </div>
+          ))
+        }
       </div>
       <Table  columns={columns} dataSource={data} />
       <ModalForm<FundsInfoItemType>

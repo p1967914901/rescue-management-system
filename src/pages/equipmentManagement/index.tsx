@@ -12,6 +12,7 @@ import { Random } from 'mockjs';
 import getTimeFormat from '@/utils/getTimeFormat';
 import { ModalForm, ProForm, ProFormDatePicker, ProFormDateTimePicker, ProFormDigit, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { IRouteComponentProps, history, useLocation } from 'umi';
+import Modal from './Modal';
 
 
 export interface EquipInfoItemType {
@@ -39,6 +40,7 @@ const equips = {
 export default () => {
   const [data, setData] = useState<EquipInfoItemType[]>([]);
   const [filteredInfo, setFilteredInfo] = useState([]);
+  const [pieModalVisit, setPieModalVisit] = useState(false);
 
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -178,11 +180,11 @@ export default () => {
       key: 'status',
       dataIndex: 'status',
       width: 100,
-      render: (text) => <Tag color={ text === '在库' ? '#87d068' : (text === '损坏' ? '#f50' : '#2db7f5' ) }>{ text }</Tag>,
+      render: (text) => <Tag color={ text === '在库' ? '#87d068' : (text === '维修' ? '#f50' : '#2db7f5' ) }>{ text }</Tag>,
       filterSearch: true,
       filters: [
         { value: '在库', text: '在库' },
-        { value: '损坏', text: '损坏' },
+        { value: '维修', text: '维修' },
         { value: '使用中', text: '使用中' },
 
       ],
@@ -260,7 +262,7 @@ export default () => {
 
   useEffect(() => {
     const arr = [{ label: '在库', color: '#97ce74', value: 0 }, { label: '使用中', color: '#5bb4ef', value: 0 }, { label: '损坏', color: '#ec622b', value: 0 }];
-    const labels = ['在库', '使用中', '损坏'];
+    const labels = ['在库', '使用中', '维修'];
     for(const item of data) {
       arr[labels.indexOf(item.status)].value ++;
     }
@@ -308,6 +310,14 @@ export default () => {
         }>
           新增
         </Button>}
+        <Button type='primary' style={{
+          float: 'right',
+          marginRight: '10px'
+        }} onClick={() => {
+          setPieModalVisit(true);
+        }}>
+          概览
+        </Button>
         {
           statistics.map(item => (
             <div style={{
@@ -315,7 +325,7 @@ export default () => {
               display: 'inline-block',
               marginRight: '30px'
             }}>
-              <Progress percent={item.value} strokeColor={item.color}/>
+              <Progress percent={item.value} format={(percent) => (percent! * data.length / 100).toFixed(0)} strokeColor={item.color}/>
 
             </div>
           ))
@@ -447,6 +457,7 @@ export default () => {
           rules={[{ required: true, message: '请填写原因' }]}
         />
       </ModalForm>
+      {pieModalVisit && <Modal data={data} pieModalVisit={pieModalVisit} setPieModalVisit={setPieModalVisit} />}
 
     </>
   )

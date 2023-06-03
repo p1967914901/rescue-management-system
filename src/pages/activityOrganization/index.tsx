@@ -90,7 +90,7 @@ const App: React.FC = () => {
   const expandedRowRender = (record:any) => {
     // console.log('record', record)
     const columns: TableColumnsType<Participant> = [
-      { title: '姓名', dataIndex: 'name', key: 'name' },
+      { title: '救援人', dataIndex: 'name', key: 'name' },
       { title: '用户名', dataIndex: 'username', key: 'username' },
       { title: '性别', dataIndex: 'gender', key: 'gender', render: (text) => text === 1 ? '男' : '女' },
       { title: '电话号码', dataIndex: 'phone', key: 'phone' },
