@@ -293,7 +293,7 @@ export default () => {
               display: 'inline-block',
               marginRight: '70px'
             }}>
-              <Progress percent={item.value / (statistics[0].value + statistics[1].value) * 100} format={(percent) => percent! * (statistics[0].value + statistics[1].value)} strokeColor={item.color}/>
+              <Progress percent={item.value / (statistics[0].value + statistics[1].value) * 100} format={(percent) => (percent! * (statistics[0].value + statistics[1].value)).toFixed(0)} strokeColor={item.color}/>
 
             </div>
           ))
