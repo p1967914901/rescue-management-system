@@ -275,6 +275,7 @@ export default () => {
     arr[2].value = parseFloat(arr[2].value.toFixed(2))
     setStatistics(arr);
   }, [data]);
+  const labels = ['在库', '使用中', '维修'];
 
   return (
     <>
@@ -319,12 +320,13 @@ export default () => {
           概览
         </Button>
         {
-          statistics.map(item => (
+          statistics.map((item, index) => (
             <div style={{
               width: '300px',
               display: 'inline-block',
               marginRight: '30px'
             }}>
+              { labels[index] }
               <Progress percent={item.value} format={(percent) => (percent! * data.length / 100).toFixed(0)} strokeColor={item.color}/>
 
             </div>

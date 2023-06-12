@@ -242,6 +242,7 @@ export default () => {
     }
     setStatistics(arr);
   }, [data]);
+  const labels = ['收入', '支出'];
 
   return (
     <>
@@ -287,12 +288,13 @@ export default () => {
           概览
         </Button>
         {
-          statistics.map(item => (
+          statistics.map((item, index) => (
             <div style={{
               width: '300px',
               display: 'inline-block',
               marginRight: '70px'
             }}>
+              { labels[index] }
               <Progress percent={item.value / (statistics[0].value + statistics[1].value) * 100} format={(percent) => (percent! * (statistics[0].value + statistics[1].value)).toFixed(0)} strokeColor={item.color}/>
 
             </div>

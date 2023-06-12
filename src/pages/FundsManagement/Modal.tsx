@@ -88,7 +88,7 @@ export default (props:any) => {
 
   return (
     <ModalForm
-      title={'概览'}
+      title={'经费管理概览'}
       onOpenChange={setPieModalVisit}
       open={pieModalVisit}
       modalProps={{
@@ -113,6 +113,12 @@ export default (props:any) => {
       }}>
 
       </div>
+      <div style={{
+        position: 'absolute',
+        right: '20px',
+        top: '70px',
+        fontWeight: 'bold'
+      }}>单位：元</div>
     </ModalForm>
   )
 }
